@@ -7,12 +7,40 @@ events.each do |event|
   events_hash[time] = te[1][1..-1]
 end
 
-sleep_time = Hash.new { |h, k| h[k] = [] }
+# sleep_time = Hash.new { |h, k| h[k] = [] }
+sleep_time = Hash.new(0)
 guard = 0
+asleep = nil
 events_hash.keys.sort.each do |event|
   if g = events_hash[event].match('\d+')
     guard = g.to_s.to_i
+  elsif asleep
+    sleep_time[guard] += event - asleep
+    asleep = nil
   else
-    sleep_time[guard] << event
+    asleep = event
   end
 end
+
+most_asleep = sleep_time.key(sleep_time.values.max)
+
+sleep_minutes = Hash.new(0)
+minute = nil
+sleepy_guard = false
+
+events_hash.keys.sort.each do |event|
+  if g = events_hash[event].match(most_asleep.to_s)
+    sleepy_guard = true
+  elsif g = events_hash[event].match('\d+')
+    sleepy_guard = false
+  elsif minute
+    (minute...event.min).each { |m| sleep_minutes[m] += 1 }
+    minute = nil
+  elsif sleepy_guard
+    minute = event.min
+  end
+end
+
+asleep_minute = sleep_minutes.key(sleep_minutes.values.max)
+
+puts most_asleep * asleep_minute
