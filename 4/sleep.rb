@@ -44,3 +44,27 @@ end
 asleep_minute = sleep_minutes.key(sleep_minutes.values.max)
 
 puts most_asleep * asleep_minute
+
+all_minutes = Hash.new { |h, k| h[k] = Hash.new(0) }
+
+events_hash.keys.sort.each do |event|
+  if g = events_hash[event].match('\d+')
+    guard = g.to_s.to_i
+  elsif asleep
+    (minute...event.min).each { |m| all_minutes[guard][m] += 1 }
+    asleep = false
+  else
+    minute = event.min
+    asleep = true
+  end
+end
+
+most_minutes = {}
+all_minutes.each do |g, m|
+  most_minutes[g] = m.values.max
+end
+
+guard_most = most_minutes.key(most_minutes.values.max)
+puts guard_most
+minutes_most = all_minutes[guard_most].key(most_minutes[guard_most])
+puts guard_most * minutes_most
