@@ -76,6 +76,15 @@ class Grid
   def largest_area
     self.area.sort_by { |k, v| v.length }.last[1].length
   end
+
+  def close_enough(max_dist = 10000)
+    total_distance = []
+    self.distance.each do |point, distances|
+      total_distance << point if distances.sum < max_dist
+    end
+    total_distance.length
+  end
+    
 end
 
 file = File.open(ARGV[0])
@@ -87,3 +96,4 @@ str_coords.each do |str|
 end
 g = Grid.new(coords)
 puts "Largest Area: #{g.largest_area}"
+puts "Close enough: #{g.close_enough}"
