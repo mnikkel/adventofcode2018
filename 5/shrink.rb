@@ -20,7 +20,12 @@ class Polymers
 end
 
 file = File.open(ARGV[0])
-p = Polymers.new(file.gets.chomp)
-# p = Polymers.new("cCaegGEBc")
-p.shrink
-puts p.polymer.length
+input = file.gets.chomp
+('a'..'z').each do |c|
+  p = Polymers.new(input.delete(c).delete(c.upcase))
+  # p = Polymers.new("cCaegGEBc")
+  p.shrink
+  puts "Deleted #{c}"
+  puts p.polymer.length
+  puts '_________________'
+end
