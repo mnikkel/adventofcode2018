@@ -1,5 +1,5 @@
 class Grid
-  attr_reader :coords 
+  attr_reader :coords
   def initialize(coords)
     @coords = coords
     @grid = gen_grid
@@ -10,9 +10,7 @@ class Grid
     grid = []
     (0..y).each do |row|
       grid << []
-      (0..x).each do |col|
-        grid[row] << '.'
-      end
+      (x + 1).times { grid[row] << '.' }
     end
     add_points(grid)
   end
@@ -28,9 +26,8 @@ class Grid
   def max_xy
     x, y = nil
     [0, 1].each do |c|
-      max = @coords.sort_by { |coord| coord[c]}.last
-      x = max[c] if c == 0
-      y = max[c] if c == 1
+      max = @coords.max_by { |coord| coord[c] }
+      c.zero? ? x = max[c] : y = max[c]
     end
     [x, y]
   end
@@ -44,7 +41,7 @@ class Grid
   def distance
     dist_hash = Hash.new { |h, k| h[k] = [] }
     @grid.each_with_index do |row, y|
-      row.each_with_index do |col, x|
+      row.length.times do |x|
         @coords.each do |coord|
           dist_hash[[x, y]] << (coord[0] - x).abs + (coord[1] - y).abs
         end
@@ -52,9 +49,9 @@ class Grid
     end
     dist_hash
   end
-  
+
   def closest
-    all_distances = self.distance
+    all_distances = distance
     closest_distance = Hash.new { |h, k| h[k] = [] }
     all_distances.each do |point, dist|
       min = dist.min
@@ -64,34 +61,36 @@ class Grid
   end
 
   def area
-    closest_coord = self.closest
-    edge_x, edge_y = self.max_xy
-    finite = closest_coord.select do |coord, points|
-      points.all? { |point| (1...edge_x).include?(point[0]) &&
-                            (1...edge_y).include?(point[1]) }
+    closest_coord = closest
+    edge_x, edge_y = max_xy
+    finite = closest_coord.select do |_coord, points|
+      points.all? do |point|
+        x_ok = (1...edge_x).cover?(point[0])
+        y_ok = (1...edge_y).cover?(point[1])
+        x_ok && y_ok
+      end
     end
     finite
   end
-  
+
   def largest_area
-    self.area.sort_by { |k, v| v.length }.last[1].length
+    area.max_by { |_k, v| v.length }[1].length
   end
 
-  def close_enough(max_dist = 10000)
+  def close_enough(max_dist = 10_000)
     total_distance = []
-    self.distance.each do |point, distances|
+    distance.each do |point, distances|
       total_distance << point if distances.sum < max_dist
     end
     total_distance.length
   end
-    
 end
 
 file = File.open(ARGV[0])
 str_coords = file.readlines.map(&:chomp)
 coords = []
 str_coords.each do |str|
-  x, y = str.split(",")
+  x, y = str.split(',')
   coords << [x.to_i, y.to_i]
 end
 g = Grid.new(coords)
