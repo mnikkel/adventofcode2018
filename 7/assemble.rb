@@ -38,21 +38,20 @@ class Assemble
     total = (@steps.keys + @steps.values.flatten).uniq.length
     while order.length < total
       order, working = dec_and_complete(order, working)
-      next_steps = available_steps(order)
-      while working.length < workers
-        working, next_steps = add_jobs(working, next_steps)
-        break if next_steps.empty?
-      end
+      working = add_jobs(working, available_steps(order), workers)
       seconds += 1
     end
     seconds - 1
   end
 
-  def add_jobs(working, next_steps)
-    min_step = next_steps.min
-    working[min_step] = @time[min_step] unless working.key?(min_step)
-    next_steps.delete(min_step)
-    [working, next_steps]
+  def add_jobs(working, next_steps, workers)
+    while working.length < workers
+      min_step = next_steps.min
+      working[min_step] = @time[min_step] unless working.key?(min_step)
+      next_steps.delete(min_step)
+      break if next_steps.empty?
+    end
+    working
   end
 
   def dec_and_complete(order, working)
