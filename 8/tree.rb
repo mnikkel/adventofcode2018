@@ -24,6 +24,21 @@ class Tree
     end
     parent_sum + children_sum
   end
+
+  def sum2(node = @nodes)
+    if node.child_nodes.length.zero?
+      total = node.metadata.sum
+    else
+      total = 0
+      node.metadata.each do |i|
+        i -= 1
+        if i < node.child_count
+          total += sum2(node.child_nodes[i])
+        end
+      end
+    end
+    total
+  end
 end
 
 class Node
@@ -42,4 +57,5 @@ if __FILE__ == $PROGRAM_NAME
   license = file.gets.chomp.split.map(&:to_i)
   t = Tree.new(license)
   puts t.sum
+  puts t.sum2
 end
