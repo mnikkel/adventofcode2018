@@ -1,15 +1,15 @@
-require 'pry'
-
 class Cart
   attr_reader :pos, :direction
+  attr_accessor :alive
   DIRECTION = { '^' => :up, '<' => :left, '>' => :right, 'v' => :down }.freeze
-  
+
   def initialize(x, y, direction)
     @pos = [y, x]
     @direction = DIRECTION[direction]
     @choices = %i[left straight right]
     @inc = 2
     @next_direction = @choices[@inc]
+    @alive = true
   end
 
   def move(track_piece)
@@ -105,36 +105,34 @@ class Tracks
   end
 
   def move_carts
-    collision = false
-    until collision
+    collisions = []
+    until @carts.select(&:alive).length == 1
       sorted_carts = sort_carts
-      sorted_carts.each do |cart|
+      sorted_carts.select(&:alive).each do |cart|
         track_piece = pos(cart.pos)
         cart.move(track_piece)
-        break if (collision = collision?)
+        if collision?
+          cart.alive = false
+          collisions << cart
+          deads = sorted_carts.select(&:alive).select { |c| c.pos == cart.pos }
+          deads.each { |dead| dead.alive = false }
+        end
       end
     end
-    positions = []
-    collisions = []
-    @carts.each do |cart|
-      if positions.include?(cart.pos)
-        collisions << cart.pos
-        break
-      end
-      positions << cart.pos
-    end
-    y, x = collisions.min
+    y, x = collisions.first.pos
     puts "Collision at: #{x},#{y}"
+    y, x = @carts.select(&:alive).first.pos
+    puts "Last cart: #{x},#{y}" 
   end
 
-  def collision?
-    positions = @carts.map { |cart| cart.pos }
-    positions != positions.uniq
-  end
+def collision?
+  positions = @carts.select(&:alive).map(&:pos)
+  positions != positions.uniq
+end
 
-  def sort_carts
-    @carts.sort_by { |cart| cart.pos }
-  end
+def sort_carts
+  @carts.sort_by(&:pos)
+end
 end
 
 if __FILE__ == $PROGRAM_NAME
